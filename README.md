@@ -4,23 +4,23 @@
 
 GhostShell is a macOS desktop context layer that provides an ultra-low latency, always-on-top, frosted-glass scratchpad. It lives independently of your desktop workspaces and follows your active monitor.
 
-## What is this? (通俗人话版)
+## What is this?
 
-GhostShell 就像是贴在你屏幕上的一张“隐形便利贴”。它不会出现在你底部的 Dock 栏里，也不会被其他全屏软件挡住。
+Think of GhostShell as an "invisible sticky note" applied directly to your monitor glass. It doesn't show up in your Dock, and it doesn't get buried under your fullscreen apps.
 
-你只需要记住一个快捷键：`⌥ Option + Space`。
-按一下，屏幕正中央就会浮现出一块极具苹果质感的毛玻璃面板；再按一下，它就瞬间消失。
+Just remember one shortcut: `⌥ Option + Space`.
+Press it, and a frosted-glass panel fades into the center of your screen. Press it again, and it vanishes.
 
-### 核心解决什么痛点？
+### The Pain Points it Solves:
 
-1. **上下文感知标签页 (Context-Aware Tabs)**
-   当你不想让它挡在屏幕中间时，不用关掉它，**直接把它推到屏幕的最左边或者最右边**。它会瞬间收缩成一条极简的、发光的蓝色线条（Tab）。当你需要它时，鼠标碰一下那条线，它就会“嘭”地一声弹回来。工作区彻底干净。
+1. **Context-Aware Tabs (Edge-Snapping)**
+   When you don't want the panel blocking your view but you still need it handy, don't close it—**just push it to the far left or right edge of your screen.** It instantly collapses into a glowing blue minimalist tab. Need it back? Just hover your mouse over the tab, and it snaps back into a full window. Zero clutter.
 
-2. **随时随地的置顶草稿本 (The Sticky Ghost)**
-   你在写代码、看视频、或者开线上会议时，如果突然有灵感或者要记个快捷键，按 `Option + Space` 呼出它直接写。因为它是永远置顶且半透明的，你可以一边看着底下的内容，一边在它上面做记录。
+2. **The Sticky Ghost (Always-on-Top Scratchpad)**
+   Whether you are writing code, watching a tutorial, or in a Zoom meeting, press `Option + Space` to summon it and jot down ideas. Because it's translucent and always on top, you can read the content underneath while typing your notes over it.
 
-3. **多屏连续性记忆 (Multi-Display Continuity)**
-   对于插着多块外接屏幕的重度用户：GhostShell 会“认屏幕”。你把它放在大屏的右上角，拔掉线去开会，它会自动回到笔记本屏幕；你开完会把线插回来，它又会分毫不差地瞬移回大屏的右上角。逻辑跟着你的屏幕走。
+3. **Multi-Display Continuity**
+   Built for heavy multi-monitor users: GhostShell "recognizes" your screens. If you leave it in the top-right corner of your external monitor and unplug your laptop to go to a meeting, it safely falls back to your main screen. When you plug the HDMI back in, it instantly teleports back to that exact top-right corner on the external monitor. The logic stays with your screen.
 
 ## How to run locally
 
