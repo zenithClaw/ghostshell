@@ -1,11 +1,20 @@
 const { app, BrowserWindow, globalShortcut, screen, ipcMain } = require('electron');
-const Store = require('electron-store');
-const store = new Store();
+
+let store;
+(async () => {
+    try {
+        const StoreModule = await import('electron-store');
+        const Store = StoreModule.default;
+        store = new Store();
+    } catch (e) {
+        console.error("Store init failed", e);
+    }
+})();
+
+const { convertToTab, tabs } = require('./tabs.js');
 
 let mainWindow;
-
-// 我们将在屏幕边缘创建隐藏的“触碰感应区”窗口
-let edgeSensors = [];
+let checkInterval;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -24,89 +33,92 @@ function createWindow() {
 
   mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   
-  // 多屏连续性：如果之前存了坐标，直接恢复
-  const savedBounds = store.get('windowBounds');
-  if (savedBounds) {
-    mainWindow.setBounds(savedBounds);
-  }
+  // 初始加载时尝试恢复位置
+  restorePosition();
 
-  // 记住最后的移动位置
   mainWindow.on('moved', () => {
-    store.set('windowBounds', mainWindow.getBounds());
+    savePosition();
   });
 
   mainWindow.loadFile('index.html');
   if (app.dock) app.dock.hide();
-  
-  createEdgeSensors();
+
+  checkInterval = setInterval(() => {
+    if (!mainWindow || !mainWindow.isVisible()) return;
+    try {
+        let bounds = mainWindow.getBounds();
+        let display = screen.getDisplayMatching(bounds);
+        if (bounds.x + bounds.width > display.bounds.x + display.bounds.width - 5) {
+          require('./tabs.js').convertToTab(mainWindow, 'right');
+        } else if (bounds.x < display.bounds.x + 5) {
+          require('./tabs.js').convertToTab(mainWindow, 'left');
+        }
+    } catch(e) {}
+  }, 300);
 }
 
-function createEdgeSensors() {
-  const displays = screen.getAllDisplays();
-  
-  displays.forEach(display => {
-    // 右边缘感应区
-    let rightSensor = new BrowserWindow({
-      x: display.bounds.x + display.bounds.width - 2,
-      y: display.bounds.y,
-      width: 2,
-      height: display.bounds.height,
-      transparent: true,
-      frame: false,
-      alwaysOnTop: true,
-      hasShadow: false,
-      focusable: false,
-      skipTaskbar: true,
-      webPreferences: { nodeIntegration: true, contextIsolation: false }
-    });
+function savePosition() {
+    if (!store || !mainWindow) return;
+    const bounds = mainWindow.getBounds();
+    const display = screen.getDisplayMatching(bounds);
+    // 存储相对于特定显示器的坐标 (非常关键，防止换屏位移)
+    const relativePos = {
+        displayId: display.id,
+        relX: bounds.x - display.bounds.x,
+        relY: bounds.y - display.bounds.y,
+        width: bounds.width,
+        height: bounds.height
+    };
+    store.set('relativePos', relativePos);
+    console.log('Saved relative pos for display', display.id);
+}
+
+function restorePosition() {
+    if (!store || !mainWindow) return;
+    const saved = store.get('relativePos');
+    if (!saved) return;
+
+    const displays = screen.getAllDisplays();
+    // 优先寻找 ID 匹配的显示器
+    let targetDisplay = displays.find(d => d.id === saved.displayId);
     
-    rightSensor.setIgnoreMouseEvents(true, { forward: true });
-    
-    // 【概念验证】当鼠标碰触右边缘时，如果是推拽状态，触发“变成标签”逻辑
-    // 由于纯Node无法完美拦截macOS原生拖拽句柄，这里用鼠标位置做模拟触发
-    setInterval(() => {
-      let pt = screen.getCursorScreenPoint();
-      if (pt.x >= display.bounds.x + display.bounds.width - 5) {
-        // 如果按住了 Option 键并且靠边，模拟“吸附为标签”
-        // console.log("Hit right edge of display", display.id);
-      }
-    }, 200);
-    
-    edgeSensors.push(rightSensor);
-  });
+    // 如果原显示器没了（拔了线），就降级使用当前鼠标所在的显示器
+    if (!targetDisplay) {
+        targetDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
+    }
+
+    const newX = targetDisplay.bounds.x + saved.relX;
+    const newY = targetDisplay.bounds.y + saved.relY;
+
+    // 边界检查，防止窗口飞到屏幕外面看不到的地方
+    mainWindow.setPosition(Math.round(newX), Math.round(newY));
 }
 
 app.whenReady().then(() => {
   createWindow();
 
-  // 绑定全局快捷键
   globalShortcut.register('Option+Space', () => {
+    const tabsList = require('./tabs.js').tabs;
+    if (tabsList.length > 0) {
+        tabsList.forEach(t => t.tabWindow.close());
+        tabsList.length = 0;
+        restorePosition(); // 呼出时恢复到该在的位置
+        mainWindow.show();
+        return;
+    }
+
     if (mainWindow.isVisible()) {
       mainWindow.hide();
     } else {
-      let point = screen.getCursorScreenPoint();
-      let display = screen.getDisplayNearestPoint(point);
-      
-      // 检查当前显示器ID，如果发现更换了显示器，重置居中
-      let lastDisplayId = store.get('lastDisplayId');
-      if (lastDisplayId !== display.id) {
-        let bounds = mainWindow.getBounds();
-        let x = Math.round(display.bounds.x + (display.bounds.width - bounds.width) / 2);
-        let y = Math.round(display.bounds.y + (display.bounds.height - bounds.height) / 2);
-        mainWindow.setPosition(x, y);
-        store.set('lastDisplayId', display.id);
-      }
-      
+      // 唤醒瞬间：重新执行多屏连续性逻辑
+      restorePosition();
       mainWindow.show();
       mainWindow.focus();
     }
   });
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
 });
 
 app.on('will-quit', () => {
+  clearInterval(checkInterval);
   globalShortcut.unregisterAll();
 });
