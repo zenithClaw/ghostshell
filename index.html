@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>GhostShell Note</title>
+  <style>
+    /* 彻底重塑！放弃CSS伪造的所有外围阴影和复杂边框 */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0);
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* 将面板设为100%填满窗口，借用macOS系统原生阴影 */
+    .glass-panel {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 16px; /* 更苹果的圆角弧度 */
+      
+      /* 纯净版的高斯模糊：不再做饱和度或者额外遮罩 */
+      background: rgba(30, 30, 30, 0.6);
+      backdrop-filter: blur(50px);
+      -webkit-backdrop-filter: blur(50px);
+      
+      /* 只留极其细微的白边高光（模拟光从屏幕打上来） */
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      border-left: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+      
+      /* 干掉所有自定义阴影，macOS原生窗口阴影会包围我们 */
+      box-shadow: none;
+      
+      -webkit-app-region: drag;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+
+    .editor {
+      -webkit-app-region: no-drag;
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 19px;
+      font-weight: 500;
+      line-height: 1.6;
+      font-family: "JetBrains Mono", monospace;
+      resize: none;
+      outline: none;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+    
+    .editor::placeholder {
+      color: rgba(255, 255, 255, 0.2);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      background: #4facfe; border-radius: 50%;
+      box-shadow: 0 0 12px #4facfe;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="glass-panel">
+    <div class="header">
+      <div style="display:flex; align-items:center;">
+        <div class="status-dot"></div>
+        GHOSTSHELL
+      </div>
+      <div>⌥ Space</div>
+    </div>
+    <textarea class="editor" placeholder="Write something..." spellcheck="false"></textarea>
+  </div>
+</body>
+</html>

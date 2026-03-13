@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GhostShell — The Invisible Interface</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ghost: #4facfe;
+  --ghost-glow: rgba(79, 172, 254, 0.3);
+  
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --surface-alt: #111111;
+  --border: #222222;
+  --text: #f5f5f7;
+  --text-dim: #a1a1aa;
+  --text-muted: #52525b;
+  --shadow: rgba(0, 0, 0, 0.8);
+  --title-gradient: linear-gradient(180deg, #fff 0%, #a1a1aa 100%);
+}
+
+[data-theme='light'] {
+  --bg: #ffffff;
+  --surface: #fbfbfd;
+  --surface-alt: #f5f5f7;
+  --border: #d2d2d7;
+  --text: #1d1d1f;
+  --text-dim: #515154;
+  --text-muted: #86868b;
+  --shadow: rgba(0, 0, 0, 0.05);
+  --title-gradient: linear-gradient(180deg, #1d1d1f 0%, #86868b 100%);
+}
+
+@keyframes slideUpFade { 
+  from { opacity: 0; transform: translateY(60px); } 
+  to { opacity: 1; transform: translateY(0); } 
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes glowPulse {
+  0% { box-shadow: 0 0 20px var(--ghost-glow); }
+  100% { box-shadow: 0 0 50px var(--ghost-glow); }
+}
+
+body { 
+  font-family: 'Inter', -apple-system, sans-serif; 
+  background: var(--bg); 
+  color: var(--text); 
+  line-height: 1.5; 
+  -webkit-font-smoothing: antialiased; 
+  min-height: 100vh; 
+  display: flex; 
+  flex-direction: column; 
+  transition: background 0.5s ease;
+  overflow-x: hidden;
+}
+
+.container { max-width: 1200px; margin: 0 auto; padding: 0 32px; width: 100%; }
+
+/* Header */
+header { display: flex; align-items: center; justify-content: space-between; padding: 32px 0; position: fixed; top: 0; left: 0; right: 0; z-index: 100; backdrop-filter: blur(20px); }
+.brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 18px; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+.ghost-logo { width: 32px; height: 32px; border-radius: 8px; background: var(--ghost); display: flex; align-items: center; justify-content: center; color: #000; box-shadow: 0 0 20px var(--ghost-glow); }
+
+.nav-right { display: flex; align-items: center; gap: 32px; }
+.nav-links { display: flex; gap: 32px; font-size: 14px; font-weight: 500; }
+.nav-links a { color: var(--text-dim); text-decoration: none; transition: color 0.2s; }
+.nav-links a:hover { color: var(--text); }
+
+.theme-toggle { background: var(--surface-alt); border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+[data-theme='light'] .moon-icon { display: block; }
+[data-theme='light'] .sun-icon { display: none; }
+[data-theme='dark'] .moon-icon { display: none; }
+[data-theme='dark'] .sun-icon { display: block; }
+
+/* Hero Section */
+.hero { padding: 180px 0 100px; text-align: center; }
+.badge { display: inline-block; padding: 6px 16px; border-radius: 20px; border: 1px solid var(--ghost); color: var(--ghost); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 32px; animation: slideUpFade 0.8s ease forwards; }
+
+.hero-title { 
+  font-size: 92px; font-weight: 800; letter-spacing: -0.05em; line-height: 1; margin-bottom: 24px;
+  background: var(--title-gradient); -webkit-background-clip: text; color: transparent;
+  animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.hero-subtitle { 
+  font-size: 26px; font-weight: 500; color: var(--text-dim); max-width: 800px; margin: 0 auto 48px; letter-spacing: -0.01em;
+  animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards; opacity: 0;
+}
+
+.cta-group { display: flex; gap: 20px; justify-content: center; animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards; opacity: 0; }
+.btn-primary { 
+  padding: 16px 40px; background: var(--text); color: var(--bg); border-radius: 30px; 
+  font-weight: 600; font-size: 16px; text-decoration: none; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-primary:hover { transform: scale(1.05); }
+.btn-secondary { 
+  padding: 16px 40px; border: 1px solid var(--border); color: var(--text); border-radius: 30px; 
+  font-weight: 600; font-size: 16px; text-decoration: none; transition: background 0.3s;
+}
+.btn-secondary:hover { background: var(--surface-alt); }
+
+/* Bento Presentation */
+.bento { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 100px; padding-bottom: 120px; }
+.bento-card { 
+  background: var(--surface); border: 1px solid var(--border); border-radius: 32px; padding: 48px; 
+  position: relative; overflow: hidden; display: flex; flex-direction: column; min-height: 400px;
+  box-shadow: 0 20px 40px var(--shadow); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0;
+}
+.bento-card:hover { transform: scale(1.02); }
+.bento-card.large { grid-column: span 2; }
+
+.bento-card h3 { font-size: 32px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.02em; }
+.bento-card p { font-size: 18px; color: var(--text-dim); line-height: 1.6; max-width: 90%; }
+
+/* Visual Components */
+.visual-shell {
+  position: absolute; right: -20px; bottom: -20px; width: 280px; height: 180px;
+  background: var(--surface-alt); border: 2px solid var(--ghost); border-radius: 12px;
+  box-shadow: 0 0 30px var(--ghost-glow); opacity: 0.6; transform: rotate(-5deg);
+}
+.visual-overlay {
+  position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+  background: radial-gradient(circle at 70% 70%, var(--ghost-glow) 0%, transparent 60%);
+}
+.visual-nodes {
+  position: absolute; top: 40px; right: 40px; display: flex; flex-direction: column; gap: 12px;
+}
+.node { width: 40px; height: 8px; background: var(--ghost); border-radius: 4px; opacity: 0.3; }
+.node.active { opacity: 1; animation: glowPulse 2s infinite alternate; }
+
+/* Footer */
+footer { margin-top: auto; padding: 48px 0; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 14px; }
+.footer-inner { display: flex; justify-content: space-between; align-items: center; }
+.footer-links { display: flex; gap: 32px; }
+.footer-links a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+.footer-links a:hover { color: var(--text); }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
+    <a href="#" class="brand">
+      <div class="ghost-logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
+      </div>
+      GhostShell
+    </a>
+    <div class="nav-right">
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#developers">Developers</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+      <button id="themeToggle" class="theme-toggle">
+        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="hero">
+    <div class="badge">Experimental Release 0.1</div>
+    <h1 class="hero-title">Your Interface,<br>Decoupled.</h1>
+    <p class="hero-subtitle">GhostShell is the first context-aware "ghost" layer for your desktop. Sticky notes that float, windows that hide in plain sight, and logic that stays with your screen.</p>
+    <div class="cta-group">
+      <a href="#" class="btn-primary">Get GhostShell</a>
+      <a href="#" class="btn-secondary">View Documentation</a>
+    </div>
+  </section>
+
+  <section class="bento" id="features">
+    <div class="bento-card large" style="animation-delay: 0.3s; padding: 0; display: flex; flex-direction: row; overflow: hidden; justify-content: space-between;">
+      <div style="flex: 1; padding: 48px; display: flex; flex-direction: column; justify-content: center; z-index: 2;">
+        <h3>Context-Aware Floating Layer</h3>
+        <p style="max-width: 100%;">A temporary note at hand with frosted glass translucency. It floats above everything without interrupting your current work flow.</p>
+      </div>
+      <div style="flex: 1.2; background: url('assets/app-demo.png') center right / contain no-repeat; margin-right: -20px; z-index: 1;"></div>
+    </div>
+
+    
+    <div class="bento-card" style="animation-delay: 0.4s; background: var(--ghost); color: #000;">
+      <h3>Ultra Low-Latency</h3>
+      <p>Built with native C bindings. GhostShell interacts directly with your OS window manager for near-zero CPU footprint.</p>
+    </div>
+
+    <div class="bento-card" style="animation-delay: 0.5s;">
+      <h3>The Sticky Ghost</h3>
+      <p>A transparent overlay for your thoughts. Write temporary notes, hex codes, or logic steps that stay visible regardless of which app you switch to.</p>
+    </div>
+
+    <div class="bento-card large" style="animation-delay: 0.6s;">
+      <div class="visual-shell"></div>
+      <h3>Multi-Display Continuity</h3>
+      <p>GhostShell remembers your specific layout for every monitor setup. Plug in your HDMI and watch your invisible interface restore itself instantly, down to the last coordinate.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="container">
+  <div class="footer-inner">
+    <div>&copy; 2026 Zenith Claw. Build with Swarm.</div>
+    <div class="footer-links">
+      <a href="https://x.com/ZenithClawAI" target="_blank">X / Twitter</a>
+      <a href="https://github.com/zenithClaw" target="_blank">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const setTheme = theme => {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+};
+setTheme(localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  setTheme(newTheme);
+});
+</script>
+</body>
+</html>

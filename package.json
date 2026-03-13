@@ -1,0 +1,12 @@
+{
+  "name": "ghostshell",
+  "version": "1.0.0",
+  "description": "The invisible interface between your screen and your thoughts.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^34.2.0"
+  }
+}
